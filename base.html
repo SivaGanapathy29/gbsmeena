@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GBS Loading Screen</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial, Helvetica, sans-serif;
+background:transparent;
+overflow:hidden;
+}
+
+/* Loader screen */
+#loading-screen{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100vh;
+background:rgba(255,255,255,0.1);
+display:flex;
+justify-content:center;
+align-items:center;
+z-index:9999;
+flex-direction:column;
+transition:opacity 0.6s ease;
+}
+
+/* 3D background scene */
+#bg-scene{
+position:fixed;
+inset:0;
+z-index:1;
+overflow:hidden;
+perspective:1200px;
+background:
+radial-gradient(1200px 600px at 20% 10%, #ffffff 0%, #eef2f9 45%, #dfe8f2 100%);
+}
+
+.snow-canvas{
+position:absolute;
+inset:0;
+width:100%;
+height:100%;
+z-index:1;
+pointer-events:none;
+}
+
+.bg-grid{
+position:absolute;
+inset:-20%;
+background:
+linear-gradient(90deg, rgba(52,82,102,0.12) 1px, transparent 1px),
+linear-gradient(180deg, rgba(52,82,102,0.12) 1px, transparent 1px);
+background-size:80px 80px;
+transform:rotateX(70deg) translateZ(-200px);
+transform-origin:center;
+animation:gridFloat 12s ease-in-out infinite;
+}
+
+.orb{
+position:absolute;
+width:300px;
+height:300px;
+border-radius:50%;
+background:
+radial-gradient(circle at 30% 30%, rgba(255,255,255,0.95), rgba(201,144,60,0.35) 45%, rgba(52,82,102,0.22) 70%, rgba(52,82,102,0.08) 100%);
+box-shadow:0 40px 90px rgba(52,82,102,0.18);
+transform-style:preserve-3d;
+animation:orbFloat 10s ease-in-out infinite;
+}
+
+.orb.one{ top:6%; left:6%; animation-delay:0s; }
+.orb.two{ bottom:6%; right:10%; width:360px; height:360px; animation-delay:-3s; }
+
+.ring{
+position:absolute;
+width:560px;
+height:560px;
+border-radius:50%;
+border:3px solid rgba(201,144,60,0.35);
+box-shadow:0 0 50px rgba(201,144,60,0.25);
+top:45%;
+left:55%;
+transform:translate(-50%, -50%) rotateX(65deg) rotateZ(25deg);
+animation:ringSpin 14s linear infinite;
+}
+
+.bg-glow{
+position:absolute;
+width:700px;
+height:700px;
+border-radius:50%;
+background:radial-gradient(circle, rgba(201,144,60,0.35), rgba(201,144,60,0) 70%);
+top:-120px;
+right:-120px;
+animation:glowPulse 8s ease-in-out infinite;
+}
+
+/* Foreground container */
+.loader-content{
+position:relative;
+z-index:2;
+display:flex;
+flex-direction:column;
+align-items:center;
+}
+
+/* Logo */
+.logo{
+width:220px;
+margin-bottom:30px;
+animation:logoPulse 2s infinite;
+}
+
+/* Spinner */
+.spinner{
+width:45px;
+height:45px;
+border:4px solid #ddd;
+border-top:4px solid #c9903c;
+border-radius:50%;
+animation:spin 1s linear infinite;
+}
+
+/* Text */
+.loading-text{
+margin-top:15px;
+font-size:15px;
+color:#345266;
+}
+
+/* Animations */
+
+@keyframes spin{
+0%{transform:rotate(0deg);}
+100%{transform:rotate(360deg);}
+}
+
+@keyframes logoPulse{
+0%{transform:scale(0.95);opacity:0.7;}
+50%{transform:scale(1);opacity:1;}
+100%{transform:scale(0.95);opacity:0.7;}
+}
+
+@keyframes orbFloat{
+0%{transform:translate3d(0,0,0) rotateY(0deg);}
+50%{transform:translate3d(0,-25px,60px) rotateY(20deg);}
+100%{transform:translate3d(0,0,0) rotateY(0deg);}
+}
+
+@keyframes ringSpin{
+0%{transform:translate(-50%, -50%) rotateX(65deg) rotateZ(0deg);}
+100%{transform:translate(-50%, -50%) rotateX(65deg) rotateZ(360deg);}
+}
+
+@keyframes gridFloat{
+0%{transform:rotateX(70deg) translateZ(-220px) translateY(20px);}
+50%{transform:rotateX(70deg) translateZ(-260px) translateY(-10px);}
+100%{transform:rotateX(70deg) translateZ(-220px) translateY(20px);}
+}
+
+@keyframes glowPulse{
+0%{opacity:0.4; transform:scale(0.95);}
+50%{opacity:0.8; transform:scale(1.05);}
+100%{opacity:0.4; transform:scale(0.95);}
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="bg-scene">
+  <canvas class="snow-canvas" id="snow-canvas"></canvas>
+  <div class="bg-grid"></div>
+  <div class="bg-glow"></div>
+  <div class="orb one"></div>
+  <div class="orb two"></div>
+  <div class="ring"></div>
+</div>
+
+<div id="loading-screen">
+  <div class="loader-content">
+    <img src="gbs-logo.jpg" class="logo">
+    <div class="spinner"></div>
+    <div class="loading-text">Loading Application...</div>
+  </div>
+</div>
+
+
+<script>
+/* show loader at least 2 seconds */
+window.addEventListener("load", function(){
+
+setTimeout(function(){
+
+let loader = document.getElementById("loading-screen");
+loader.style.opacity = "0";
+
+setTimeout(function(){
+loader.style.display = "none";
+window.location.href = "index.html";
+},600);
+
+},2000);
+
+});
+
+</script>
+
+<script>
+/* Mouse-move snow animation */
+(function(){
+const canvas = document.getElementById("snow-canvas");
+const ctx = canvas.getContext("2d");
+let w = 0, h = 0, dpr = Math.max(1, window.devicePixelRatio || 1);
+let mouseX = 0, mouseY = 0;
+const flakes = [];
+const FLAKE_COUNT = 140;
+
+function resize(){
+  w = canvas.clientWidth;
+  h = canvas.clientHeight;
+  canvas.width = Math.floor(w * dpr);
+  canvas.height = Math.floor(h * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function createFlakes(){
+  flakes.length = 0;
+  for(let i=0;i<FLAKE_COUNT;i++){
+    flakes.push({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      r: 1 + Math.random() * 2.5,
+      speed: 0.4 + Math.random() * 1.2,
+      drift: (Math.random() - 0.5) * 0.6,
+      depth: 0.4 + Math.random() * 0.8
+    });
+  }
+}
+
+function onMouseMove(e){
+  const rect = canvas.getBoundingClientRect();
+  mouseX = (e.clientX - rect.left) / rect.width - 0.5;
+  mouseY = (e.clientY - rect.top) / rect.height - 0.5;
+}
+
+function update(){
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "rgba(255,255,255,0.9)";
+  for(const f of flakes){
+    const mx = mouseX * 20 * f.depth;
+    const my = mouseY * 12 * f.depth;
+    const x = f.x + mx;
+    const y = f.y + my;
+    ctx.beginPath();
+    ctx.arc(x, y, f.r, 0, Math.PI * 2);
+    ctx.fill();
+
+    f.y += f.speed;
+    f.x += f.drift;
+    if(f.y > h + 10){ f.y = -10; f.x = Math.random() * w; }
+    if(f.x > w + 10){ f.x = -10; }
+    if(f.x < -10){ f.x = w + 10; }
+  }
+  requestAnimationFrame(update);
+}
+
+resize();
+createFlakes();
+update();
+window.addEventListener("resize", function(){
+  resize();
+  createFlakes();
+});
+window.addEventListener("mousemove", onMouseMove);
+})();
+</script>
+
+</body>
+</html>
